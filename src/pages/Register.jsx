@@ -1,10 +1,13 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useMutation } from '@tanstack/react-query';
 import React from 'react';
+import {register as registerService,login as loginService} from '../services/auth'
+import {toast} from 'react-toastify';
 import {useForm} from 'react-hook-form'
-import { Link } from 'react-router-dom';
+import { Link,  useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
-
-export default function Registeration() {
+import cookies from 'js-cookie'
+export default function Register() {
 
 
 const RegisterSchema = Yup.object().shape({
@@ -20,12 +23,35 @@ const RegisterSchema = Yup.object().shape({
     .required('تکرار رمز عبور الزامی است')
     .oneOf([Yup.ref('password')], 'رمز عبور با تکرار آن مطابقت ندارد'),
 });
+const {register,handleSubmit,formState:{errors}}=useForm({resolver:yupResolver(RegisterSchema)});
 
-
-  const {register,handleSubmit,formState:{errors}}=useForm({resolver:yupResolver(RegisterSchema)});
-
-  const onSubmit=(data)=>{
-    console.log(data)
+   const navigate=useNavigate()
+   const registerMutation= useMutation({
+    mutationFn:registerService
+   })
+   const loginMutation=useMutation({
+        mutationFn:loginService,
+        onSuccess:(data)=>{            
+              cookies.set('jwt-token',data.data.token,{expires:1});
+              navigate('/products');
+        },
+        onError:(err)=>{
+          toast.error("مشکلی در ورود کاربر به وجود آمد!");
+          console.log("Error from loginMutation",err);
+        }
+   })
+  const onSubmit=(formData)=>{
+   registerMutation.mutate(formData,{
+      onSuccess:()=>{
+        toast.success("کاربر با موفقیت ثبت گردید!");
+        loginMutation.mutate({username:formData.username,password:formData.password});
+      },
+      onError:(err)=>{
+        toast.error("مشکلی در ثبت کاربر به وجود آمد!");
+        console.log("Error from registerMutation",err);
+        
+      }
+    })
   }
   return (
     <div  className="bg-gray-100 min-h-dvh flex items-center justify-center ">

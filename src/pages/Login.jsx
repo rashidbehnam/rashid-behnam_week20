@@ -1,9 +1,12 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import * as Yup from 'yup'
 import {useForm} from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-
+import cookies from 'js-cookie'
+import {toast} from 'react-toastify'
+import { useMutation} from '@tanstack/react-query'
+import {login as loginService} from '../services/auth'
 
 
 const Login = () => {
@@ -16,10 +19,25 @@ const Login = () => {
     });
 
 
-    const {register,handleSubmit,formState:{errors}}=useForm({resolver:yupResolver(LoginSchema)});
+  const {register,handleSubmit,formState:{errors}}=useForm({resolver:yupResolver(LoginSchema)});
+  const navigate=useNavigate();
+  const {mutate}= useMutation({
+      mutationFn:loginService
+    })
 
     const onSubmit=(data)=>{
-      console.log(data)
+      mutate(data,
+        {
+      onSuccess:(data)=>{
+        toast.success('کاربر با موفقیت وارد شد!');
+        console.log(data)
+        cookies.set('jwt-token',data.data.token,{expires:1,secure:false});
+        navigate('/');
+      },
+      onError:(err)=>{
+          toast.error('مشکلی در ورود کاربر به وجود آمده');
+          console.log(err)
+      }});
     }
 
 
