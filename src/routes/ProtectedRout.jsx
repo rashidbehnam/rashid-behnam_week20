@@ -5,7 +5,7 @@ const ProtectedRout = ({children}) => {
     const token=cookies.get("jwt-token");
 
     const isJWT = (token)=> {
-    const jwtRegex = /^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+$/;
+    const jwtRegex =  /^[A-Za-z0-9-_]{10,}\.[A-Za-z0-9-_]{10,}\.[A-Za-z0-9-_]{20,}$/;
     return jwtRegex.test(token);
     };
 
